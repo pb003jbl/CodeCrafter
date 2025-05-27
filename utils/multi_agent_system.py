@@ -6,6 +6,7 @@ import autogen
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 import streamlit as st
 from utils.groq_client import GroqClient
+from utils.agent_metrics import performance_tracker
 
 class MultiAgentCodeAnalyzer:
     """
@@ -229,9 +230,16 @@ class MultiAgentCodeAnalyzer:
     async def collaborative_code_review(self, code: str, language: str, filename: str = "") -> Dict[str, Any]:
         """Perform collaborative code review using multiple agents"""
         
+        # Start tracking overall analysis
+        task_id = performance_tracker.start_task("MultiAgentSystem", "collaborative_code_review")
+        
         try:
             # Check if API keys are available
             if not os.getenv("OPENAI_API_KEY") and not os.getenv("GROQ_API_KEY"):
+                performance_tracker.complete_task(
+                    task_id, "MultiAgentSystem", "collaborative_code_review", 
+                    False, error_message="No API keys configured"
+                )
                 return {
                     "error": "No API keys configured",
                     "message": "Please configure OPENAI_API_KEY or GROQ_API_KEY to use multi-agent analysis"
@@ -239,12 +247,28 @@ class MultiAgentCodeAnalyzer:
             
             # Fallback to single-agent analysis using GroqClient for rate limit issues
             try:
+                # Track individual agent performance
+                groq_task_id = performance_tracker.start_task("GroqFallback", "code_analysis")
+                
                 # Use the existing GroqClient for more reliable analysis
                 analysis_result = self.groq_client.analyze_code(code, language, "general")
                 
                 if analysis_result:
+                    # Rate response quality based on completeness
+                    quality_score = self._assess_response_quality(analysis_result)
+                    
+                    performance_tracker.complete_task(
+                        groq_task_id, "GroqFallback", "code_analysis", 
+                        True, quality_score, tokens_used=len(code) // 4  # Estimate
+                    )
+                    
+                    performance_tracker.complete_task(
+                        task_id, "MultiAgentSystem", "collaborative_code_review", 
+                        True, quality_score
+                    )
+                    
                     # Convert to multi-agent format
-                    return {
+                    result = {
                         "analysis_type": "fallback_single_agent",
                         "filename": filename,
                         "language": language,
@@ -257,15 +281,33 @@ class MultiAgentCodeAnalyzer:
                         "findings": analysis_result.get('issues', []),
                         "enhanced_with_agents": False,
                         "rate_limit_fallback": True,
-                        "message": "Analysis completed using fallback method due to API rate limits"
+                        "message": "Analysis completed using fallback method due to API rate limits",
+                        "performance_metrics": performance_tracker.get_session_summary()
                     }
+                    
+                    return result
                 else:
+                    performance_tracker.complete_task(
+                        groq_task_id, "GroqFallback", "code_analysis", 
+                        False, error_message="No analysis result returned"
+                    )
+                    
+                    performance_tracker.complete_task(
+                        task_id, "MultiAgentSystem", "collaborative_code_review", 
+                        False, error_message="Analysis failed"
+                    )
+                    
                     return {
                         "error": "Analysis failed",
                         "message": "Unable to analyze code due to API limitations. Please try again later."
                     }
                     
             except Exception as fallback_error:
+                performance_tracker.complete_task(
+                    task_id, "MultiAgentSystem", "collaborative_code_review", 
+                    False, error_message=str(fallback_error)
+                )
+                
                 return {
                     "error": str(fallback_error),
                     "message": "Multi-agent analysis failed due to rate limits. Please try again in a few minutes.",
@@ -273,6 +315,11 @@ class MultiAgentCodeAnalyzer:
                 }
                 
         except Exception as e:
+            performance_tracker.complete_task(
+                task_id, "MultiAgentSystem", "collaborative_code_review", 
+                False, error_message=str(e)
+            )
+            
             return {
                 "error": str(e),
                 "message": "Multi-agent analysis failed"
@@ -426,6 +473,23 @@ class MultiAgentCodeAnalyzer:
         
         return score
     
+    def _assess_response_quality(self, analysis_result: Dict[str, Any]) -> int:
+        """Assess the quality of an analysis response on a 1-10 scale"""
+        
+        score = 5  # Base score
+        
+        # Check for completeness
+        if analysis_result.get('issues'):
+            score += 2
+        if analysis_result.get('code_quality'):
+            score += 1
+        if analysis_result.get('recommendations'):
+            score += 1
+        if analysis_result.get('security_issues'):
+            score += 1
+        
+        return min(10, max(1, score))
+    
     def _combine_chunk_results(self, chunk_results: List[Dict[str, Any]], filename: str) -> Dict[str, Any]:
         """Combine analysis results from multiple chunks"""
         
@@ -454,7 +518,8 @@ class MultiAgentCodeAnalyzer:
                 "Add comprehensive testing for complex codebase",
                 "Consider using automated code quality tools"
             ],
-            "chunk_details": chunk_results
+            "chunk_details": chunk_results,
+            "performance_metrics": performance_tracker.get_session_summary()
         }
     
     async def collaborative_translation(self, code: str, source_lang: str, target_lang: str) -> Dict[str, Any]:
@@ -517,6 +582,27 @@ class AgentOrchestrator:
     
     def __init__(self):
         self.multi_agent_analyzer = MultiAgentCodeAnalyzer()
+    
+    def get_performance_metrics(self, time_window_hours: int = 24) -> Dict[str, Any]:
+        """Get comprehensive performance metrics for all agents"""
+        
+        return {
+            "agent_statistics": performance_tracker.get_agent_comparison(time_window_hours),
+            "task_analysis": performance_tracker.get_task_type_analysis(time_window_hours),
+            "error_analysis": performance_tracker.get_error_analysis(time_window_hours),
+            "session_summary": performance_tracker.get_session_summary(),
+            "time_window_hours": time_window_hours
+        }
+    
+    def get_agent_trends(self, agent_name: str = None, hours_back: int = 24) -> Dict[str, Any]:
+        """Get performance trends for agents over time"""
+        
+        return performance_tracker.get_performance_trends(agent_name, hours_back)
+    
+    def export_performance_data(self) -> str:
+        """Export performance metrics to file"""
+        
+        return performance_tracker.export_metrics()
     
     async def enhanced_code_review(self, code: str, language: str, options: Dict[str, Any]) -> Dict[str, Any]:
         """Enhanced code review with agent collaboration"""

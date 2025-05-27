@@ -78,6 +78,16 @@ def main():
             st.switch_page("pages/5_Multi_Agent_Analysis.py")
         st.markdown("Collaborative AI agents")
     
+    # Additional features row
+    st.markdown("#### 📊 Advanced Features")
+    
+    feature_cols2 = st.columns(3)
+    
+    with feature_cols2[0]:
+        if st.button("📊 Agent Performance", use_container_width=True):
+            st.switch_page("pages/7_Agent_Performance.py")
+        st.markdown("Monitor agent metrics")
+    
     # Enhancement showcase
     st.markdown("---")
     st.markdown("#### ✨ Latest Enhancements")
