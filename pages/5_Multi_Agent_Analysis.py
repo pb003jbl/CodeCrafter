@@ -289,11 +289,16 @@ def main():
                 progress_bar.progress(100)
                 time.sleep(0.5)
 
-                # Display results
+                # Store results for download and display
                 if result and not result.get('error'):
                     st.success("✅ Multi-agent analysis completed successfully!")
+                    
+                    # Store in session state for download
+                    st.session_state.multi_agent_results = result
+                    st.session_state.analysis_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    st.session_state.analysis_mode = analysis_mode
 
-                    # Show analysis results
+                    # Show detailed analysis results
                     display_multi_agent_results(result, analysis_mode)
 
                 else:
