@@ -51,7 +51,7 @@ def main():
     st.markdown("---")
     st.markdown("#### 🚀 Quick Start")
     
-    feature_cols = st.columns(4)
+    feature_cols = st.columns(5)
     
     with feature_cols[0]:
         if st.button("🔄 Code Translation", use_container_width=True):
@@ -72,6 +72,11 @@ def main():
         if st.button("🐙 GitHub Analysis", use_container_width=True):
             st.switch_page("pages/4_GitHub_Analysis.py")
         st.markdown("Repository analysis")
+    
+    with feature_cols[4]:
+        if st.button("🤖 Multi-Agent AI", use_container_width=True):
+            st.switch_page("pages/5_Multi_Agent_Analysis.py")
+        st.markdown("Collaborative AI agents")
     
     # Configuration check
     st.markdown("---")

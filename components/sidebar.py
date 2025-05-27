@@ -22,7 +22,8 @@ def render_sidebar():
             "🔄 Code Translation": "pages/1_Code_Translation.py", 
             "🔍 Code Review": "pages/2_Code_Review.py",
             "📚 Documentation": "pages/3_Documentation_Generator.py",
-            "🐙 GitHub Analysis": "pages/4_GitHub_Analysis.py"
+            "🐙 GitHub Analysis": "pages/4_GitHub_Analysis.py",
+            "🤖 Multi-Agent AI": "pages/5_Multi_Agent_Analysis.py"
         }
         
         # Get current page
