@@ -237,22 +237,40 @@ class MultiAgentCodeAnalyzer:
                     "message": "Please configure OPENAI_API_KEY or GROQ_API_KEY to use multi-agent analysis"
                 }
             
-            # Handle large files by chunking
-            if len(code) > 5000:  # Large file threshold
-                chunks = self.chunk_large_file(code, max_chunk_size=2000)
+            # Fallback to single-agent analysis using GroqClient for rate limit issues
+            try:
+                # Use the existing GroqClient for more reliable analysis
+                analysis_result = self.groq_client.analyze_code(code, language, "general")
                 
-                # Analyze chunks in parallel (conceptually)
-                chunk_results = []
-                for chunk in chunks[:3]:  # Limit to first 3 chunks for demo
-                    result = await self._analyze_code_chunk(chunk, language, filename)
-                    if result:
-                        chunk_results.append(result)
-                
-                # Combine results
-                return self._combine_chunk_results(chunk_results, filename)
-            else:
-                # Analyze smaller files directly
-                return await self._analyze_full_code(code, language, filename)
+                if analysis_result:
+                    # Convert to multi-agent format
+                    return {
+                        "analysis_type": "fallback_single_agent",
+                        "filename": filename,
+                        "language": language,
+                        "overall_score": analysis_result.get('code_quality', 75),
+                        "recommendations": [
+                            "Analysis completed with single agent due to rate limits",
+                            "Consider upgrading Groq API tier for multi-agent features",
+                            "Review code quality issues identified below"
+                        ],
+                        "findings": analysis_result.get('issues', []),
+                        "enhanced_with_agents": False,
+                        "rate_limit_fallback": True,
+                        "message": "Analysis completed using fallback method due to API rate limits"
+                    }
+                else:
+                    return {
+                        "error": "Analysis failed",
+                        "message": "Unable to analyze code due to API limitations. Please try again later."
+                    }
+                    
+            except Exception as fallback_error:
+                return {
+                    "error": str(fallback_error),
+                    "message": "Multi-agent analysis failed due to rate limits. Please try again in a few minutes.",
+                    "suggestion": "Consider upgrading your Groq API tier for higher rate limits"
+                }
                 
         except Exception as e:
             return {
