@@ -78,7 +78,7 @@ def main():
     st.markdown("#### ⚙️ Configuration Status")
     
     # Check API keys
-    groq_key = os.getenv("GROQ_API_KEY")
+    groq_key = st.session_state.get('groq_api_key') or os.getenv("GROQ_API_KEY")
     github_token = os.getenv("GITHUB_TOKEN")
     
     config_cols = st.columns(2)

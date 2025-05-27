@@ -43,21 +43,66 @@ def render_sidebar():
         st.markdown("### ⚙️ Configuration")
         
         # Check API keys and services
-        groq_key = os.getenv("GROQ_API_KEY")
+        groq_key = st.session_state.get('groq_api_key') or os.getenv("GROQ_API_KEY")
         github_token = os.getenv("GITHUB_TOKEN")
         
         # Groq API status
         if groq_key:
             st.success("✅ Groq API Connected")
+            
+            # Option to update API key
+            with st.expander("🔑 Update API Key"):
+                new_api_key = st.text_input(
+                    "Enter new Groq API Key",
+                    type="password",
+                    placeholder="gsk_...",
+                    help="Enter your new Groq API key to update"
+                )
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Update Key", use_container_width=True):
+                        if new_api_key and new_api_key.strip():
+                            # Update session state
+                            st.session_state['groq_api_key'] = new_api_key.strip()
+                            st.success("API key updated for this session!")
+                            st.rerun()
+                        else:
+                            st.error("Please enter a valid API key")
+                
+                with col2:
+                    if st.button("Clear Key", use_container_width=True):
+                        if 'groq_api_key' in st.session_state:
+                            del st.session_state['groq_api_key']
+                        st.warning("API key cleared from session")
+                        st.rerun()
         else:
             st.error("❌ Groq API Key Missing")
-            with st.expander("ℹ️ Setup Help"):
+            with st.expander("ℹ️ Setup API Key"):
                 st.markdown("""
-                **To configure Groq API:**
+                **Option 1: Set Environment Variable**
                 1. Get API key from [Groq Console](https://console.groq.com)
                 2. Set environment variable: `GROQ_API_KEY=your_key`
                 3. Restart the application
+                
+                **Option 2: Enter Key Below**
                 """)
+                
+                # Allow entering API key directly
+                new_api_key = st.text_input(
+                    "Enter Groq API Key",
+                    type="password",
+                    placeholder="gsk_...",
+                    help="Enter your Groq API key for this session"
+                )
+                
+                if st.button("Set API Key", use_container_width=True):
+                    if new_api_key and new_api_key.strip():
+                        st.session_state['groq_api_key'] = new_api_key.strip()
+                        st.success("API key set for this session!")
+                        st.rerun()
+                    else:
+                        st.error("Please enter a valid API key")
         
         # GitHub token status
         if github_token:

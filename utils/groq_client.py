@@ -7,9 +7,20 @@ class GroqClient:
     """Client for interacting with Groq LLM API"""
     
     def __init__(self):
-        self.api_key = os.getenv("GROQ_API_KEY")
+        # Check session state first, then environment variable
+        import streamlit as st
+        self.api_key = None
+        
+        # Try to get from session state first
+        if hasattr(st, 'session_state') and 'groq_api_key' in st.session_state:
+            self.api_key = st.session_state['groq_api_key']
+        
+        # Fallback to environment variable
         if not self.api_key:
-            raise ValueError("GROQ_API_KEY environment variable is required")
+            self.api_key = os.getenv("GROQ_API_KEY")
+        
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY not found in session state or environment variables")
         
         self.base_url = "https://api.groq.com/openai/v1"
         self.headers = {
