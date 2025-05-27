@@ -290,20 +290,43 @@ def main():
                 progress_bar.progress(100)
                 time.sleep(0.5)
 
-                # Store results for download and display
-                if result and not result.get('error'):
-                    st.success("✅ Multi-agent analysis completed successfully!")
-                    
+                # Always show some results, even if there are errors
+                if result:
                     # Store in session state for download
                     st.session_state.multi_agent_results = result
                     st.session_state.analysis_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     st.session_state.analysis_mode = analysis_mode
-
-                    # Show detailed analysis results
-                    display_multi_agent_results(result, analysis_mode)
-
+                    
+                    if not result.get('error'):
+                        st.success("✅ Multi-agent analysis completed successfully!")
+                        display_multi_agent_results(result, analysis_mode)
+                    else:
+                        st.warning("⚠️ Analysis completed with API rate limit constraints")
+                        
+                        # Show any partial results we have
+                        if result.get('agent_outputs') or any(key for key in result.keys() if 'agent' in key.lower()):
+                            st.info("📊 Showing available analysis results:")
+                            display_multi_agent_results(result, analysis_mode)
+                        
+                        # Always provide immediate basic analysis
+                        st.markdown("### 🔍 Immediate Code Analysis")
+                        show_immediate_analysis(code_content, language)
+                        
+                        # Rate limit guidance
+                        with st.expander("💡 Getting Full AI Analysis", expanded=False):
+                            st.markdown("""
+                            **Current Issue:** API rate limits (6000 tokens/minute with Groq free tier)
+                            
+                            **Solutions:**
+                            1. **Wait 2-3 minutes** and try again with smaller code samples
+                            2. **Use Code Review page** for immediate single-agent analysis  
+                            3. **Break large files** into smaller chunks
+                            4. **Upgrade to Groq Pro** for higher rate limits
+                            """)
                 else:
-                    st.error(f"❌ Analysis failed: {result.get('error', 'Unknown error')}")
+                    st.error("❌ Analysis could not be completed")
+                    st.markdown("### 🔍 Basic Code Analysis")
+                    show_immediate_analysis(code_content, language)
 
                     # Show fallback message
                     if 'API keys' in str(result.get('error', '')):
