@@ -78,6 +78,25 @@ def main():
             st.switch_page("pages/5_Multi_Agent_Analysis.py")
         st.markdown("Collaborative AI agents")
     
+    # Enhancement showcase
+    st.markdown("---")
+    st.markdown("#### ✨ Latest Enhancements")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.info("""
+        🚀 **NEW: True Parallel Processing**
+        - Handle large files efficiently
+        - Up to 4x faster analysis
+        - Smart rate limit management
+        """)
+    
+    with col2:
+        if st.button("📋 View All Enhancements", use_container_width=True):
+            st.switch_page("pages/6_Enhancements_Overview.py")
+        st.markdown("See complete feature overview")
+    
     # Configuration check
     st.markdown("---")
     st.markdown("#### ⚙️ Configuration Status")

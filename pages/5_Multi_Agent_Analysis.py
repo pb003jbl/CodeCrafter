@@ -1,6 +1,7 @@
 import streamlit as st
 import asyncio
 from utils.multi_agent_system import AgentOrchestrator
+from utils.parallel_processor import ParallelProcessor
 from utils.constants import SUPPORTED_LANGUAGES
 from components.sidebar import render_sidebar
 import time
@@ -13,9 +14,10 @@ def main():
     st.title("🤖 Multi-Agent AI Analysis")
     st.markdown("Leverage collaborative AI agents for advanced code analysis and enhancement")
     
-    # Initialize the agent orchestrator
+    # Initialize the agent orchestrator and parallel processor
     try:
         orchestrator = AgentOrchestrator()
+        parallel_processor = ParallelProcessor()
     except Exception as e:
         st.error(f"Failed to initialize multi-agent system: {str(e)}")
         st.info("Please ensure you have OpenAI or Groq API keys configured for multi-agent features")
@@ -41,6 +43,8 @@ def main():
             - 🔄 Translation Expert - Multi-language conversion
             - 📊 Large File Handling - Intelligent chunking
             - 🤝 Collaborative Analysis - Agent teamwork
+            - ⚡ Parallel Processing - True multi-threaded analysis
+            - 🛡️ Rate Limit Management - Smart API usage
             """)
     
     # Analysis type selection
@@ -96,10 +100,14 @@ def main():
                 language = ext_to_lang.get(file_ext, 'Python')
                 
                 # Show file preview for large files
-                if len(code_content) > 2000:
-                    st.info(f"📊 Large file detected ({len(code_content)} chars) - Multi-agent analysis will use intelligent chunking")
+                if len(code_content) > 3000:
+                    st.info(f"🚀 Large file detected ({len(code_content)} chars) - Parallel processing will be used for optimal performance")
                     with st.expander("📄 File Preview (first 1000 characters)"):
                         st.code(code_content[:1000] + "...", language=language.lower())
+                elif len(code_content) > 1000:
+                    st.success(f"📊 Medium file ({len(code_content)} chars) - Multi-agent analysis with smart chunking")
+                else:
+                    st.info(f"📄 Small file ({len(code_content)} chars) - Direct analysis")
                 
             except Exception as e:
                 st.error(f"Error reading file: {str(e)}")
@@ -196,38 +204,90 @@ def main():
             status_text = st.empty()
             
             try:
-                # Simulate progress updates
-                status_text.text("Initializing agent team...")
-                progress_bar.progress(20)
-                time.sleep(1)
+                # Determine if we should use parallel processing
+                use_parallel = len(code_content) > 3000 or use_parallel
                 
-                status_text.text("Distributing analysis tasks...")
-                progress_bar.progress(40)
-                time.sleep(1)
-                
-                if "Translation" in analysis_mode:
-                    status_text.text("Agents collaborating on translation...")
-                    progress_bar.progress(60)
+                if use_parallel:
+                    # Use parallel processing for large files
+                    status_text.text("🚀 Initializing parallel processing system...")
+                    progress_bar.progress(10)
                     
-                    # Perform translation with agents
-                    result = asyncio.run(orchestrator.enhanced_translation(
-                        code_content, source_lang, target_lang
-                    ))
+                    # Create processing tasks
+                    if "Translation" in analysis_mode:
+                        # Translation doesn't need chunking currently
+                        status_text.text("🔄 Processing translation with specialized agents...")
+                        progress_bar.progress(60)
+                        
+                        result = asyncio.run(orchestrator.enhanced_translation(
+                            code_content, source_lang, target_lang
+                        ))
+                    else:
+                        # Create parallel analysis tasks
+                        status_text.text("📊 Creating analysis tasks for parallel processing...")
+                        progress_bar.progress(20)
+                        
+                        analysis_type = analysis_mode.lower().replace(' ', '_').replace('-', '_')
+                        if 'security' in analysis_type:
+                            task_type = "security"
+                        elif 'performance' in analysis_type:
+                            task_type = "performance"
+                        else:
+                            task_type = "comprehensive"
+                        
+                        tasks = parallel_processor.create_processing_tasks(
+                            code_content, language, task_type
+                        )
+                        
+                        status_text.text(f"⚡ Processing {len(tasks)} tasks in parallel...")
+                        progress_bar.progress(40)
+                        
+                        # Define progress callback
+                        def update_progress(completed, total, latest_result):
+                            progress = 40 + int((completed / total) * 40)
+                            progress_bar.progress(progress)
+                            status_text.text(f"⚡ Completed {completed}/{total} parallel tasks...")
+                        
+                        # Run parallel processing
+                        parallel_results = await parallel_processor.process_parallel(
+                            tasks, progress_callback=update_progress
+                        )
+                        
+                        status_text.text("🔗 Combining results from parallel analysis...")
+                        progress_bar.progress(85)
+                        
+                        # Combine results
+                        result = parallel_processor.combine_chunk_results(parallel_results)
+                        result['used_parallel_processing'] = True
+                        result['processing_metrics'] = parallel_processor.get_processing_metrics()
+                        
                 else:
-                    status_text.text("Agents analyzing code collaboratively...")
-                    progress_bar.progress(60)
+                    # Standard processing for smaller files
+                    status_text.text("Initializing agent team...")
+                    progress_bar.progress(20)
+                    time.sleep(0.5)
                     
-                    # Perform collaborative code review
-                    result = asyncio.run(orchestrator.enhanced_code_review(
-                        code_content, language, analysis_options
-                    ))
+                    status_text.text("Distributing analysis tasks...")
+                    progress_bar.progress(40)
+                    time.sleep(0.5)
+                    
+                    if "Translation" in analysis_mode:
+                        status_text.text("Agents collaborating on translation...")
+                        progress_bar.progress(60)
+                        
+                        result = asyncio.run(orchestrator.enhanced_translation(
+                            code_content, source_lang, target_lang
+                        ))
+                    else:
+                        status_text.text("Agents analyzing code collaboratively...")
+                        progress_bar.progress(60)
+                        
+                        result = asyncio.run(orchestrator.enhanced_code_review(
+                            code_content, language, analysis_options
+                        ))
                 
-                status_text.text("Synthesizing agent insights...")
-                progress_bar.progress(80)
-                time.sleep(1)
-                
-                status_text.text("Analysis complete!")
+                status_text.text("✨ Analysis complete - Preparing results...")
                 progress_bar.progress(100)
+                time.sleep(0.5)
                 
                 # Display results
                 if result and not result.get('error'):
@@ -339,18 +399,57 @@ def display_multi_agent_results(result: dict, analysis_mode: str):
                 if issue.get('agent'):
                     st.caption(f"Identified by: {issue['agent']}")
         
+        # Parallel processing metrics
+        if result.get('used_parallel_processing'):
+            st.success("🚀 Enhanced with true parallel processing for optimal performance!")
+            
+            metrics = result.get('processing_metrics', {})
+            if metrics:
+                st.markdown("#### ⚡ Parallel Processing Performance")
+                
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Tasks Processed", metrics.get('total_tasks', 0))
+                
+                with col2:
+                    st.metric("Success Rate", f"{metrics.get('success_rate', 0)}%")
+                
+                with col3:
+                    st.metric("Avg Task Time", f"{metrics.get('average_processing_time', 0):.2f}s")
+                
+                with col4:
+                    efficiency = metrics.get('parallel_efficiency', 1.0)
+                    st.metric("Parallel Efficiency", f"{efficiency:.1f}x")
+                
+                # Show efficiency explanation
+                if efficiency > 1.5:
+                    st.success(f"🎯 Excellent parallel efficiency! {efficiency:.1f}x faster than sequential processing")
+                elif efficiency > 1.0:
+                    st.info(f"✅ Good parallel performance - {efficiency:.1f}x speedup achieved")
+        
         # Agent collaboration info
-        if result.get('enhanced_with_agents'):
+        elif result.get('enhanced_with_agents'):
             st.success("✨ Analysis enhanced with specialized AI agents working together")
         
         # Chunk analysis details (for large files)
         if result.get('chunk_details'):
             with st.expander("📄 Detailed Chunk Analysis"):
                 for chunk in result['chunk_details']:
-                    st.markdown(f"**Chunk {chunk.get('chunk_id')} (Lines {chunk.get('lines')})**")
-                    if chunk.get('issues_found'):
-                        for issue in chunk['issues_found']:
-                            st.markdown(f"- {issue.get('description', 'Issue found')}")
+                    chunk_id = chunk.get('chunk_id', 'Unknown')
+                    processing_time = chunk.get('processing_time', 0)
+                    issues_count = chunk.get('issues_found', 0)
+                    
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.markdown(f"**{chunk_id}** - {issues_count} issues found")
+                    with col2:
+                        st.caption(f"{processing_time:.2f}s")
+                    
+                    if chunk.get('success'):
+                        st.success(f"✅ {chunk_id} processed successfully")
+                    else:
+                        st.error(f"❌ {chunk_id} failed to process")
 
 if __name__ == "__main__":
     main()
