@@ -248,9 +248,9 @@ def main():
                             status_text.text(f"⚡ Completed {completed}/{total} parallel tasks...")
                         
                         # Run parallel processing
-                        parallel_results = await parallel_processor.process_parallel(
+                        parallel_results = asyncio.run(parallel_processor.process_parallel(
                             tasks, progress_callback=update_progress
-                        )
+                        ))
                         
                         status_text.text("🔗 Combining results from parallel analysis...")
                         progress_bar.progress(85)
