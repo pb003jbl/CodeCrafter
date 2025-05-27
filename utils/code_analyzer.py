@@ -756,3 +756,24 @@ This project is organized into {len(set(f.split('/')[0] for f in files_data.keys
 ```bash
 git clone https://github.com/{repo_info.get('owner', {}).get('login', 'owner')}/{repo_info.get('name', 'repo')}.git
 cd {repo_info.get('name', 'repo')}
+# Follow specific installation instructions based on the project type
+```
+
+## 📖 Usage
+
+Please refer to the documentation and examples in the repository for detailed usage instructions.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the terms specified in the repository.
+"""
+
+            return readme
+            
+        except Exception as e:
+            print(f"Error generating enhanced README: {str(e)}")
+            return None
