@@ -286,3 +286,66 @@ Provide a JSON response with this structure:
         except Exception as e:
             print(f"Code translation error: {str(e)}")
             return None
+    
+    def generate_documentation(
+        self, 
+        code: str, 
+        language: str, 
+        doc_style: str = "comprehensive",
+        include_examples: bool = True
+    ) -> Optional[str]:
+        """
+        Generate comprehensive documentation for code
+        
+        Args:
+            code: Source code to document
+            language: Programming language
+            doc_style: Documentation style (comprehensive, concise, api_reference, tutorial)
+            include_examples: Whether to include usage examples
+        
+        Returns:
+            Generated documentation as markdown string
+        """
+        
+        system_prompt = f"""You are an expert technical writer specializing in {language} documentation.
+        Generate clear, comprehensive, and well-structured documentation in Markdown format."""
+        
+        style_instructions = {
+            "comprehensive": "detailed explanations with context, purpose, and implementation details",
+            "concise": "brief, focused documentation for quick reference",
+            "api_reference": "technical reference with parameters, return values, and usage",
+            "tutorial": "step-by-step guides with learning context and examples"
+        }
+        
+        style_text = style_instructions.get(doc_style, "comprehensive and detailed")
+        examples_text = "Include practical usage examples and code samples." if include_examples else "Focus on descriptions without usage examples."
+        
+        user_prompt = f"""Generate {style_text} documentation for this {language} code:
+
+```{language.lower()}
+{code}
+```
+
+Requirements:
+- Use Markdown formatting
+- {examples_text}
+- Include function/class descriptions, parameters, and return values
+- Explain the purpose and functionality
+- Use appropriate headings and structure
+- Make it readable and well-organized
+
+Generate comprehensive documentation that would help other developers understand and use this code."""
+        
+        try:
+            response = self.generate_completion(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                max_tokens=4000,
+                temperature=0.1
+            )
+            
+            return response
+            
+        except Exception as e:
+            print(f"Documentation generation error: {str(e)}")
+            return None
