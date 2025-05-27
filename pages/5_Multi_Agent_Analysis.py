@@ -290,7 +290,7 @@ def main():
                 time.sleep(0.5)
 
                 # Display results
-                if result and not result.get('error')):
+                if result and not result.get('error'):
                     st.success("✅ Multi-agent analysis completed successfully!")
 
                     # Show analysis results
