@@ -97,17 +97,88 @@ def main():
     if input_method == "📁 Upload File" and uploaded_file is not None:
         try:
             input_code = uploaded_file.read().decode('utf-8')
-            st.success(f"✅ Loaded {uploaded_file.name}")
+            filename = uploaded_file.name
+            file_ext = filename.split('.')[-1].lower()
+            
+            # Auto-detect source language
+            ext_to_lang = {
+                'py': 'Python', 'js': 'JavaScript', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
+                'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript'
+            }
+            
+            if file_ext in ext_to_lang:
+                detected_lang = ext_to_lang[file_ext]
+                st.success(f"✅ Loaded {filename} - Detected: {detected_lang}")
+                if detected_lang != source_lang:
+                    st.info(f"💡 Consider changing source language to {detected_lang}")
+            else:
+                st.success(f"✅ Loaded {filename}")
+                
         except Exception as e:
-            st.error(f"Error reading file: {str(e)}")
+            st.error(f"❌ Error reading file: {str(e)}")
     
-    # Code editor for manual input
-    code_input = st.text_area(
-        "Enter your code here:",
-        value=input_code,
-        height=300,
-        placeholder=f"Enter your {source_lang} code here..."
-    )
+    elif input_method == "🐙 GitHub URL" and github_url and fetch_button:
+        try:
+            with st.spinner("🔄 Fetching code from GitHub..."):
+                # Convert GitHub URL to raw format
+                raw_url = convert_github_url_to_raw(github_url)
+                
+                if raw_url:
+                    import requests
+                    response = requests.get(raw_url, timeout=10)
+                    
+                    if response.status_code == 200:
+                        input_code = response.text
+                        filename = github_url.split('/')[-1]
+                        file_ext = filename.split('.')[-1].lower() if '.' in filename else ''
+                        
+                        # Auto-detect language
+                        ext_to_lang = {
+                            'py': 'Python', 'js': 'JavaScript', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
+                            'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript'
+                        }
+                        
+                        detected_lang = ext_to_lang.get(file_ext, 'Unknown')
+                        
+                        st.success(f"✅ Fetched {filename} from GitHub")
+                        if detected_lang != 'Unknown':
+                            st.info(f"🔍 Detected language: {detected_lang}")
+                        
+                        # Show file info
+                        lines = len(input_code.split('\n'))
+                        st.metric("File size", f"{lines} lines")
+                        
+                    elif response.status_code == 404:
+                        st.error("❌ File not found. Please check the URL.")
+                        input_code = ""
+                    else:
+                        st.error(f"❌ Failed to fetch file (HTTP {response.status_code})")
+                        input_code = ""
+                else:
+                    st.error("❌ Invalid GitHub URL format")
+                    input_code = ""
+                    
+        except Exception as e:
+            st.error(f"❌ Error fetching file: {str(e)}")
+            input_code = ""
+    
+    # Code editor for manual input or editing fetched code
+    if input_method == "✍️ Manual Entry" or not input_code:
+        code_input = st.text_area(
+            "Enter your code here:" if input_method == "✍️ Manual Entry" else "Edit code:",
+            value=input_code,
+            height=300,
+            placeholder=f"Enter your {source_lang} code here..."
+        )
+    else:
+        # Show preview of fetched code with option to edit
+        st.markdown("#### 📋 Code Preview")
+        code_input = st.text_area(
+            "Code content (you can edit before translation):",
+            value=input_code,
+            height=300,
+            help="Edit the fetched code before translation if needed"
+        )
     
     # Translation options
     with st.expander("🔧 Translation Options"):
