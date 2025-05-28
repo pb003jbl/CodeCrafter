@@ -9,4 +9,5 @@ dependencies = [
     "requests>=2.32.3",
     "streamlit>=1.45.1",
     "trafilatura>=2.0.0",
+    "zipfile36>=0.1.3",
 ]
