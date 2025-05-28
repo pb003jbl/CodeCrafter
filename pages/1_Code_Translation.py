@@ -311,9 +311,9 @@ def main():
     
     elif code_input.strip():
         if st.button("🔄 Translate Code", type="primary", use_container_width=True):
-        if not code_input.strip():
-            st.error("❌ Please provide code to translate")
-            return
+            if not code_input.strip():
+                st.error("❌ Please provide code to translate")
+                return
         
         with st.spinner(f"Translating from {source_lang} to {target_lang}..."):
             try:
