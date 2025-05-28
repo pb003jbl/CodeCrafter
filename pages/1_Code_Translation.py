@@ -45,15 +45,56 @@ def main():
     # Code input section
     st.markdown("### Input Code")
     
-    # File upload option
-    uploaded_file = st.file_uploader(
-        "Upload a code file (optional)",
-        type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
-        help="Upload a code file to translate, or enter code manually below"
+    # Input method selection
+    input_method = st.radio(
+        "Choose input method:",
+        ["✍️ Manual Entry", "📁 Upload File", "🐙 GitHub URL"],
+        horizontal=True
     )
     
+    if input_method == "📁 Upload File":
+        uploaded_file = st.file_uploader(
+            "Upload a code file",
+            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
+            help="Upload a code file to translate"
+        )
+    elif input_method == "🐙 GitHub URL":
+        st.markdown("#### Fetch Code from GitHub Repository")
+        
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            github_url = st.text_input(
+                "GitHub file URL",
+                placeholder="https://github.com/owner/repo/blob/main/file.py",
+                help="Paste the direct URL to a code file on GitHub"
+            )
+        
+        with col2:
+            fetch_button = st.button("🔄 Fetch", use_container_width=True)
+        
+        # GitHub URL examples
+        with st.expander("📋 GitHub URL Examples"):
+            st.markdown("""
+            **Supported formats:**
+            - `https://github.com/owner/repo/blob/main/file.py`
+            - `https://github.com/owner/repo/blob/branch/path/to/file.js`
+            - `https://raw.githubusercontent.com/owner/repo/main/file.py`
+            
+            **Popular examples:**
+            - Python: `https://github.com/python/cpython/blob/main/Lib/os.py`
+            - JavaScript: `https://github.com/facebook/react/blob/main/packages/react/index.js`
+            - Java: `https://github.com/spring-projects/spring-boot/blob/main/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/SpringApplication.java`
+            """)
+    else:
+        uploaded_file = None
+        github_url = None
+        fetch_button = False
+    
     input_code = ""
-    if uploaded_file is not None:
+    
+    # Handle different input methods
+    if input_method == "📁 Upload File" and uploaded_file is not None:
         try:
             input_code = uploaded_file.read().decode('utf-8')
             st.success(f"✅ Loaded {uploaded_file.name}")
@@ -157,6 +198,22 @@ def main():
         - Error handling patterns
         - Documentation preservation
         """)
+
+def convert_github_url_to_raw(github_url: str) -> str:
+    """Convert GitHub URL to raw content URL"""
+    try:
+        # Handle different GitHub URL formats
+        if 'raw.githubusercontent.com' in github_url:
+            return github_url
+        elif 'github.com' in github_url and '/blob/' in github_url:
+            # Convert from blob URL to raw URL
+            raw_url = github_url.replace('github.com', 'raw.githubusercontent.com')
+            raw_url = raw_url.replace('/blob/', '/')
+            return raw_url
+        else:
+            return ""
+    except Exception:
+        return ""
 
 if __name__ == "__main__":
     main()
