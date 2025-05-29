@@ -12,7 +12,7 @@ class GroqClient:
         self.api_key = os.getenv("GROQ_API_KEY")
         
         # Fallback to session state if available
-        if not self.api_key and hasattr(st, 'session_state') and 'groq_api_key' in st.session_state:
+        if not self.api_key and  'groq_api_key' in st.session_state:
             self.api_key = st.session_state['groq_api_key']
         
         if not self.api_key:
