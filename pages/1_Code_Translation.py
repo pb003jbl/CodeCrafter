@@ -55,7 +55,7 @@ def main():
     if input_method == "📁 Upload File":
         uploaded_file = st.file_uploader(
             "Upload a code file",
-            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
+            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx','r'],
             help="Upload a code file to translate"
         )
     elif input_method == "🐙 GitHub URL":
@@ -105,7 +105,7 @@ def main():
                     )
                     include_extensions = st.multiselect(
                         "Include file types",
-                        [".py", ".js", ".java", ".cpp", ".c", ".rs", ".go", ".php", ".rb", ".ts"],
+                        [".py", ".js", ".java", ".cpp", ".c", ".rs", ".go", ".php", ".rb", ".ts",'.r'],
                         default=[".py", ".js", ".java"]
                     )
         
@@ -151,7 +151,8 @@ def main():
             # Auto-detect source language
             ext_to_lang = {
                 'py': 'Python', 'js': 'JavaScript', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
-                'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript'
+                'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript','r': 'R'
+
             }
             
             if file_ext in ext_to_lang:
@@ -184,7 +185,8 @@ def main():
                             # Auto-detect language
                             ext_to_lang = {
                                 'py': 'Python', 'js': 'JavaScript', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
-                                'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript'
+                                'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript', 'r': 'R'
+
                             }
                             
                             detected_lang = ext_to_lang.get(file_ext, 'Unknown')
@@ -238,7 +240,8 @@ def main():
                                 ext = filepath.split('.')[-1].lower()
                                 ext_to_lang = {
                                     'py': 'Python', 'js': 'JavaScript', 'java': 'Java', 'cpp': 'C++', 'c': 'C',
-                                    'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript'
+                                    'rs': 'Rust', 'go': 'Go', 'php': 'PHP', 'rb': 'Ruby', 'ts': 'TypeScript', 'r': 'R'
+
                                 }
                                 if ext in ext_to_lang:
                                     languages.add(ext_to_lang[ext])
@@ -417,7 +420,7 @@ def fetch_github_repository(repo_url: str, max_files: int = 20, file_size_limit:
     if exclude_dirs is None:
         exclude_dirs = ["node_modules", ".git", "__pycache__"]
     if include_extensions is None:
-        include_extensions = [".py", ".js", ".java", ".cpp", ".c", ".rs", ".go", ".php", ".rb", ".ts"]
+        include_extensions = [".py", ".js", ".java", ".cpp", ".c", ".rs", ".go", ".php", ".rb", ".ts",".r"]
     
     try:
         # Parse repository URL
@@ -609,7 +612,8 @@ def get_file_extension(language: str) -> str:
         'TypeScript': '.ts',
         'C#': '.cs',
         'Swift': '.swift',
-        'Kotlin': '.kt'
+        'Kotlin': '.kt',
+        'R': '.r'
     }
     return extensions.get(language, '.txt')
 

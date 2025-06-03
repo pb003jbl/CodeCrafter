@@ -36,7 +36,7 @@ def main():
     if input_method == "Single File":
         uploaded_file = st.file_uploader(
             "Upload a code file",
-            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
+            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx','r'],
             help="Upload a single code file to document"
         )
         
@@ -51,7 +51,7 @@ def main():
     elif input_method == "Multiple Files":
         uploaded_files = st.file_uploader(
             "Upload multiple code files",
-            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
+            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx','r'],
             accept_multiple_files=True,
             help="Upload multiple files to generate comprehensive documentation"
         )
@@ -320,7 +320,8 @@ def main():
                     '.rs': 'rust',
                     '.go': 'go',
                     '.php': 'php',
-                    '.rb': 'ruby'
+                    '.rb': 'ruby',
+                    '.r': 'r'
                 }
                 
                 file_ext = '.' + filename.split('.')[-1] if '.' in filename else ''
@@ -344,7 +345,8 @@ def main():
                     '.rs': 'rust',
                     '.go': 'go',
                     '.php': 'php',
-                    '.rb': 'ruby'
+                    '.rb': 'ruby',
+                    '.r': 'r'
                 }
                 
                 file_ext = '.' + selected_file.split('.')[-1] if '.' in selected_file else ''

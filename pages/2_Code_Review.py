@@ -40,7 +40,7 @@ def main():
     if input_method == "File Upload":
         uploaded_file = st.file_uploader(
             "Upload your code file",
-            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx'],
+            type=['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'php', 'rb', 'ts', 'jsx', 'tsx','r'],
             help="Upload a code file for review"
         )
         

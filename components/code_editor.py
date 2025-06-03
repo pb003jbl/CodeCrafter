@@ -41,7 +41,8 @@ def render_code_editor(
         "PHP": "php",
         "Ruby": "ruby",
         "React": "jsx",
-        "Angular": "typescript"
+        "Angular": "typescript",
+        "R": "r"
     }
     
     highlight_lang = language_map.get(language, language.lower())
@@ -137,7 +138,8 @@ def render_code_preview(
         "PHP": "php",
         "Ruby": "ruby",
         "React": "jsx",
-        "Angular": "typescript"
+        "Angular": "typescript",
+        "R": 'r'
     }
     
     highlight_lang = language_map.get(language, language.lower())
@@ -198,7 +200,8 @@ def render_file_explorer(
             '.php': 'PHP',
             '.rb': 'Ruby',
             '.jsx': 'React',
-            '.tsx': 'TypeScript'
+            '.tsx': 'TypeScript',
+            '.r': 'R'
         }
         
         language = language_map.get(file_ext, 'text')
@@ -296,7 +299,8 @@ def render_syntax_highlighter(
         "PHP": "php",
         "Ruby": "ruby",
         "React": "jsx",
-        "Angular": "typescript"
+        "Angular": "typescript",
+        "R": "r"
     }
     
     highlight_lang = language_map.get(language, language.lower())
@@ -373,7 +377,8 @@ def render_code_metrics(
         'Rust': ['//'],
         'Go': ['//'],
         'PHP': ['//', '#'],
-        'Ruby': ['#']
+        'Ruby': ['#'],
+        'R': ['#']
     }
     
     patterns = comment_patterns.get(language, ['#', '//'])

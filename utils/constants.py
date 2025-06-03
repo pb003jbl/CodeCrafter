@@ -20,7 +20,8 @@ SUPPORTED_LANGUAGES = [
     "PHP",
     "Ruby",
     "React",
-    "Angular"
+    "Angular",
+    "R"
 ]
 
 # File extensions mapping
@@ -36,7 +37,8 @@ FILE_EXTENSIONS = {
     "PHP": [".php"],
     "Ruby": [".rb"],
     "React": [".jsx"],
-    "Angular": [".ts", ".component.ts"]
+    "Angular": [".ts", ".component.ts"],
+    "R": [".r", ".R"]
 }
 
 # Color scheme (matching the design requirements)

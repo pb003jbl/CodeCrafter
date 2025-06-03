@@ -24,7 +24,8 @@ class CodeAnalyzer:
             '.php': 'PHP',
             '.rb': 'Ruby',
             '.jsx': 'React',
-            '.tsx': 'TypeScript'
+            '.tsx': 'TypeScript',
+            '.r': 'R'
         }
     
     def detect_language(self, code: str, filename: str = "") -> str:
