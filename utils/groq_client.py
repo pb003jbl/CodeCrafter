@@ -2,6 +2,9 @@ import os
 import requests
 import json
 from typing import Dict, Any, Optional
+from ibm_watsonx_ai import APIClient
+from ibm_watsonx_ai import Credentials
+from ibm_watsonx_ai.foundation_models import ModelInference
 
 class GroqClient:
     """Client for interacting with Groq LLM API"""
@@ -9,24 +12,42 @@ class GroqClient:
     def __init__(self):
         # Try to get API key from environment or session state
         import streamlit as st
-        self.api_key = os.getenv("GROQ_API_KEY")
+        # self.api_key = os.getenv("GROQ_API_KEY")
+        self.api_key = "7vtx6WylZ_l61nACdpVG2SOpX8o__DMSre5B6__KpSXA"
         
         # Fallback to session state if available
-        if not self.api_key and  'groq_api_key' in st.session_state:
-            self.api_key = st.session_state['groq_api_key']
+        # if not self.api_key and  'groq_api_key' in st.session_state:
+        #     self.api_key = st.session_state['groq_api_key']
         
-        if not self.api_key:
-            # Don't raise error, let the app handle missing keys gracefully
-            self.api_key = None
+        # if not self.api_key:
+        #     # Don't raise error, let the app handle missing keys gracefully
+        #     self.api_key = None
 
-        self.base_url = "https://api.groq.com/openai/v1"
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        # self.base_url = "https://api.groq.com/openai/v1"
+        # self.headers = {
+        #     "Authorization": f"Bearer {self.api_key}",
+        #     "Content-Type": "application/json"
+        # }
 
-        # Default model - using Groq's fastest model for code analysis
-        self.default_model = "llama3-8b-8192"
+        # # Default model - using Groq's fastest model for code analysis
+        # self.default_model = "llama3-8b-8192"
+
+        self.credentials = Credentials(
+            url="https://us-south.ml.cloud.ibm.com",
+            api_key="7vtx6WylZ_l61nACdpVG2SOpX8o__DMSre5B6__KpSXA"
+        )
+        self.client = APIClient(self.credentials) 
+        self.inference = ModelInference(
+            model_id="ibm/granite-13b-instruct-v2",
+            api_client=self.client,
+            project_id="8771a545-206f-4c11-b6f7-3561d5d8ae52",
+            params={
+                "decoding_method": "greedy",
+                "temperature": 0.5,
+                "min_new_tokens": 10,
+                "max_new_tokens": 100,
+            }
+        )   
 
     def generate_completion(
         self, 
